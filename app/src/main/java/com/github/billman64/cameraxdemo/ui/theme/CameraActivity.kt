@@ -42,7 +42,24 @@ class CameraActivity : ComponentActivity() {
             }, ContextCompat.getMainExecutor(this)
         )
 
+        val orientationEventListener = object: OrientationEventListener(this) {
+            override fun onOrientationChanged(p0: Int) {
+                Log.d(TAG, "onConfigurationChange() - ${p0}")
+                val orientationTv = findViewById<TextView>(R.id.orientation)
 
+                when(p0) {
+
+                    in 0..45 -> orientationTv.text = "portrait"
+                    in 60..120 -> orientationTv.text = "landscape"
+                    in 150..210 -> orientationTv.text = "portrait"
+                    in 240..300 -> orientationTv.text = "landscape"
+
+                    else -> "(unknown orientation)"
+                }
+            }
+
+        }
+        orientationEventListener.enable()
 
     }
 
@@ -62,21 +79,9 @@ class CameraActivity : ComponentActivity() {
     }
 
 
-//    var orientationEventListener:OrientationEventListener.enable()
 
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        Log.d(TAG, "onConfigurationChange() - ${newConfig.orientation}")
-        val orientationTv = findViewById<TextView>(R.id.orientation)
 
-        when(newConfig.orientation) {
-            Configuration.ORIENTATION_PORTRAIT -> orientationTv.text = "Portrait"
-            Configuration.ORIENTATION_LANDSCAPE -> orientationTv.text = "Landscape"
-            else -> "(unknown orientation)"
-        }
-
-    }
 
 
 
