@@ -1,9 +1,11 @@
 package com.github.billman64.cameraxdemo.ui.theme
 
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
+import android.view.OrientationEventListener
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.camera.core.ImageAnalysis
@@ -15,7 +17,6 @@ import com.google.common.util.concurrent.ListenableFuture
 
 class CameraActivity : ComponentActivity() {
     val TAG = "CameraActivity" // this.localClassName
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +59,25 @@ class CameraActivity : ComponentActivity() {
 //            }
 //            )
 
+    }
+
+
+//    var orientationEventListener:OrientationEventListener.enable()
+
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.d(TAG, "onConfigurationChange() - ${newConfig.orientation}")
+        val orientationTv = findViewById<TextView>(R.id.orientation)
+
+        when(newConfig.orientation) {
+            Configuration.ORIENTATION_PORTRAIT -> orientationTv.text = "Portrait"
+            Configuration.ORIENTATION_LANDSCAPE -> orientationTv.text = "Landscape"
+            else -> "(unknown orientation)"
+        }
 
     }
+
+
+
 }
