@@ -9,6 +9,7 @@ import android.view.OrientationEventListener
 import android.widget.TextView
 import androidx.activity.ComponentActivity
 import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
@@ -25,13 +26,15 @@ class CameraActivity : ComponentActivity() {
         Log.d(TAG, "onCreate()")
         var previewView:PreviewView = findViewById(R.id.previewView)
         var cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+//        var cameraProviderFuture = ListenableFuture<ProcessCameraProvider>
         var textView:TextView = findViewById(R.id.orientation)
 
         cameraProviderFuture.addListener(
             {
                 run {
                     try{
-                        var cameraProvider = ProcessCameraProvider.getInstance(this)
+//                        var cameraProvider = ProcessCameraProvider.getInstance(this)
+                        var cameraProvider:ProcessCameraProvider = cameraProviderFuture.get()
                         bindImageAnalysis(cameraProvider)
 
 
@@ -63,18 +66,21 @@ class CameraActivity : ComponentActivity() {
 
     }
 
-    private fun bindImageAnalysis(cameraProvider: ListenableFuture<ProcessCameraProvider>) {
+    private fun bindImageAnalysis(cameraProvider: ProcessCameraProvider) {
 
-//        var imageAnalysis: ImageAnalysis.Builder = ImageAnalysis.Builder().setTargetResolution(Size(1280, 720))
-//            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-//            .build()
-//            .setAnalyzer(ContextCompat.getMainExecutor(this), ImageAnalysis.Analyzer {
-//                analyze(image:ImageProxy){
-//
-//                }
-//
-//            }
-//            )
+        var imageAnalysis: ImageAnalysis = ImageAnalysis.Builder().setTargetResolution(Size(1280, 720))
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+
+            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), ImageAnalysis.Analyzer {
+                ImageAnalysis.Analyzer(){
+
+                    fun analyze(image: ImageProxy){
+                        image.close()
+                    }
+                                }
+
+            }
+            )
 
     }
 
