@@ -8,11 +8,14 @@ import android.util.Size
 import android.view.OrientationEventListener
 import android.widget.TextView
 import androidx.activity.ComponentActivity
+import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleOwner
 import com.github.billman64.cameraxdemo.R
 import com.google.common.util.concurrent.ListenableFuture
 
@@ -26,23 +29,34 @@ class CameraActivity : ComponentActivity() {
         Log.d(TAG, "onCreate()")
         var previewView:PreviewView = findViewById(R.id.previewView)
         var cameraProviderFuture = ProcessCameraProvider.getInstance(this)
-//        var cameraProviderFuture = ListenableFuture<ProcessCameraProvider>
         var textView:TextView = findViewById(R.id.orientation)
 
         cameraProviderFuture.addListener(
             {
                 run {
                     try{
-//                        var cameraProvider = ProcessCameraProvider.getInstance(this)
                         var cameraProvider:ProcessCameraProvider = cameraProviderFuture.get()
                         bindImageAnalysis(cameraProvider)
-
-
                     } catch (e:Exception){
                         e.printStackTrace()
                     }
                 }
             }, ContextCompat.getMainExecutor(this)
+        )
+    }
+
+    private fun bindImageAnalysis(cameraProvider: ProcessCameraProvider) {
+
+        var imageAnalysis: ImageAnalysis = ImageAnalysis.Builder().setTargetResolution(Size(1280, 720))
+            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
+
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), ImageAnalysis.Analyzer {
+            ImageAnalysis.Analyzer(){
+                fun analyze(image: ImageProxy){
+                    image.close()
+                }
+            }
+        }
         )
 
         val orientationEventListener = object: OrientationEventListener(this) {
@@ -60,35 +74,14 @@ class CameraActivity : ComponentActivity() {
                     else -> "(unknown orientation)"
                 }
             }
-
         }
         orientationEventListener.enable()
-
+        var preview:Preview = Preview.Builder().build()
+        var cameraSelector: CameraSelector = CameraSelector.Builder()
+            .requireLensFacing(CameraSelector.LENS_FACING_BACK).build()
+        var previewView: PreviewView = findViewById(R.id.previewView)
+        preview.setSurfaceProvider(previewView.createSurfaceProvider())
+        cameraProvider.bindToLifecycle(this, cameraSelector, imageAnalysis, preview)
     }
-
-    private fun bindImageAnalysis(cameraProvider: ProcessCameraProvider) {
-
-        var imageAnalysis: ImageAnalysis = ImageAnalysis.Builder().setTargetResolution(Size(1280, 720))
-            .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build()
-
-            imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), ImageAnalysis.Analyzer {
-                ImageAnalysis.Analyzer(){
-
-                    fun analyze(image: ImageProxy){
-                        image.close()
-                    }
-                                }
-
-            }
-            )
-
-    }
-
-
-
-
-
-
-
 
 }
